@@ -8,7 +8,6 @@ leptos = { version = "0.1" }
 console_log = "0.2"
 log = "0.4"
 console_error_panic_hook = "0.1"
-serde = {version = "1.0.152", features = ["rc"]}
 console = "0.15.3"
 
 [dev-dependencies]

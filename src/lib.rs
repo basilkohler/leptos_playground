@@ -1,13 +1,13 @@
 use crate::pagination::{Pagination, PaginationProps, PaginationStateContext};
+use crate::pagination_state::PaginationState;
 use leptos::*;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Display;
 
 pub mod pagination;
 pub mod pagination_state;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug)]
 pub struct DB {
     pub items: Vec<MockItem>,
 }
@@ -36,14 +36,14 @@ impl DB {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone)]
 pub struct MockItem {
     id: String,
     title: String,
     description: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone)]
 pub struct PaginatedResult<T> {
     result: Vec<T>,
     total: usize,
@@ -75,18 +75,26 @@ pub fn Items(cx: Scope) -> impl IntoView {
         set_pagination_state,
     } = use_context(cx).unwrap_throw();
 
-    let paginated_items = create_resource(
+    let db = DB::new(42);
+
+    let paginated_items = create_local_resource(
         cx,
         move || pagination_state(),
-        move |ps| async move { DB::new(42).get_paginated_items(ps.calc_skip(), ps.page_size()) },
+        move |ps| {
+            // Update resource on pagination state change
+            let items = db.get_paginated_items(ps.calc_skip(), ps.page_size());
+            // Update pagination by writing the total number of elements
+            // This has to be done here because in effects its not allowed to write to signals (
+            set_pagination_state
+                .update(|pagination_state| pagination_state.set_element_count(items.total));
+            async { items.result }
+        },
     );
 
     view! { cx,
         <div>{move || {
             paginated_items.with(|paginated_items| {
-                // set length on pagination
-                set_pagination_state.update(|pagination_state| pagination_state.set_element_count(paginated_items.total));
-                paginated_items.result.iter()
+                paginated_items.iter()
                     .map(| item | view!{ cx, <MockItem item=item.clone()/> })
                 .collect::<Vec<_>>()
             })
