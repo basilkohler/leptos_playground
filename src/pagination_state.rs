@@ -112,7 +112,7 @@ impl Default for PaginationState {
         PaginationState {
             page: 1,
             page_size: 1,
-            element_count: 42,
+            element_count: 0,
             n_left_right: 1,
         }
     }
