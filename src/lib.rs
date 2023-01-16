@@ -52,13 +52,12 @@ pub fn App(cx: Scope) -> impl IntoView {
         <div>
             <h1>"Paginated Items"</h1>
             // Customize rendering of Pagination component
-            <Pagination link_element=Box::new(|cx, cur, page|
+            <Pagination link_element=|cx, cur, page|
                 if let Some(page) = page {
                     view!(cx, <span style={if cur {"color: red" } else {""}}>"<"{move || page}">"</span>).into_any()
                 } else {
                     view!(cx, <span>"..."</span>).into_any()
-                }
-            )>
+                }>
                 <Items/>
             </Pagination>
         </div>

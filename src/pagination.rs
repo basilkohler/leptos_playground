@@ -8,12 +8,22 @@ pub struct PaginationStateContext {
     pub set_pagination_state: WriteSignal<PaginationState>,
 }
 
+// #[component]
+// pub fn Pagination<F, IV, IF>(cx: Scope, link_element: F, children: IF) -> impl IntoView
+// where
+//     F: Fn(Scope, bool, Option<usize>) -> IV + 'static,
+//     IV: IntoView,
+//     IF: IntoFragment,
 #[component]
-pub fn Pagination(
+pub fn Pagination<F, IV>(
     cx: Scope,
-    link_element: Box<dyn Fn(Scope, bool, Option<usize>) -> HtmlElement<AnyElement>>,
+    link_element: F,
     children: Box<dyn Fn(Scope) -> Fragment>,
-) -> impl IntoView {
+) -> impl IntoView
+where
+    F: Fn(Scope, bool, Option<usize>) -> IV + 'static,
+    IV: IntoView,
+{
     let (state, set_state) = create_signal(cx, PaginationState::default());
 
     let link_element = Rc::new(link_element);
