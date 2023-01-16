@@ -1,0 +1,15 @@
+[package]
+name = "leptos_playground"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+leptos = { version = "0.1" }
+console_log = "0.2"
+log = "0.4"
+console_error_panic_hook = "0.1"
+serde = {version = "1.0.152", features = ["rc"]}
+console = "0.15.3"
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.0"
