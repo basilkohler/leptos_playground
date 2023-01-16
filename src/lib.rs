@@ -1,8 +1,5 @@
 use crate::pagination::{Pagination, PaginationProps, PaginationStateContext};
-use crate::pagination_state::PaginationState;
 use leptos::*;
-use std::collections::HashMap;
-use std::fmt::Display;
 
 pub mod pagination;
 pub mod pagination_state;
