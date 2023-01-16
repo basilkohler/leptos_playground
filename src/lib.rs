@@ -72,19 +72,19 @@ pub fn Items(cx: Scope) -> impl IntoView {
         set_pagination_state,
     } = use_context(cx).unwrap_throw();
 
-    let db = DB::new(42);
-
     let paginated_items = create_local_resource(
         cx,
         move || pagination_state(),
-        move |ps| {
+        move |ps| async move {
             // Update resource on pagination state change
-            let items = db.get_paginated_items(ps.calc_skip(), ps.page_size());
+            let items = DB::new(42)
+                .get_paginated_items(ps.calc_skip(), ps.page_size())
+                .clone();
             // Update pagination by writing the total number of elements
             // This has to be done here because in effects its not allowed to write to signals (
             set_pagination_state
                 .update(|pagination_state| pagination_state.set_element_count(items.total));
-            async { items.result }
+            items.result
         },
     );
 
