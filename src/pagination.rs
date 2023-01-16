@@ -8,12 +8,6 @@ pub struct PaginationStateContext {
     pub set_pagination_state: WriteSignal<PaginationState>,
 }
 
-// #[component]
-// pub fn Pagination<F, IV, IF>(cx: Scope, link_element: F, children: IF) -> impl IntoView
-// where
-//     F: Fn(Scope, bool, Option<usize>) -> IV + 'static,
-//     IV: IntoView,
-//     IF: IntoFragment,
 #[component]
 pub fn Pagination<F, IV>(
     cx: Scope,
