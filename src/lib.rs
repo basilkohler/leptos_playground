@@ -1,50 +1,10 @@
+use crate::db::{MockItem, DB};
 use crate::pagination::{Pagination, PaginationProps, PaginationStateContext};
 use leptos::*;
 
+pub mod db;
 pub mod pagination;
 pub mod pagination_state;
-
-#[derive(Debug)]
-pub struct DB {
-    pub items: Vec<MockItem>,
-}
-
-impl DB {
-    pub fn new(size: usize) -> Self {
-        let items = (0..size).map(|i| MockItem {
-            id: format!("id{i}"),
-            title: format!("title{i}"),
-            description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Mauris a diam maecenas sed enim ut sem viverra aliquet.".to_string(),
-        }).collect();
-        DB { items }
-    }
-
-    pub fn get_paginated_items(&self, n_skip: usize, n_take: usize) -> PaginatedResult<MockItem> {
-        PaginatedResult {
-            result: self
-                .items
-                .iter()
-                .cloned()
-                .skip(n_skip)
-                .take(n_take)
-                .collect(),
-            total: self.items.len(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct MockItem {
-    id: String,
-    title: String,
-    description: String,
-}
-
-#[derive(Debug, Clone)]
-pub struct PaginatedResult<T> {
-    result: Vec<T>,
-    total: usize,
-}
 
 #[component]
 pub fn App(cx: Scope) -> impl IntoView {
