@@ -1,6 +1,8 @@
-use crate::pagination_state::PaginationState;
-use leptos::*;
 use std::rc::Rc;
+
+use leptos::*;
+
+use crate::pagination_state::PaginationState;
 
 #[derive(Copy, Clone)]
 pub struct PaginationStateContext {
@@ -11,10 +13,12 @@ pub struct PaginationStateContext {
 #[component]
 pub fn Pagination(
     cx: Scope,
+    page: usize,
+    page_size: usize,
     link_element: Box<dyn Fn(Scope, bool, Option<usize>) -> HtmlElement<AnyElement>>,
     children: Box<dyn Fn(Scope) -> Fragment>,
 ) -> impl IntoView {
-    let (state, set_state) = create_signal(cx, PaginationState::default());
+    let (state, set_state) = create_signal(cx, PaginationState::new(page, page_size));
 
     let link_element = Rc::new(link_element);
 

@@ -7,6 +7,13 @@ pub struct PaginationState {
 }
 
 impl PaginationState {
+    pub fn new(page: usize, page_size: usize) -> Self {
+        PaginationState {
+            page,
+            page_size,
+            ..PaginationState::default()
+        }
+    }
     pub fn calc_skip(&self) -> usize {
         self.page.saturating_sub(1) * self.page_size
     }
@@ -107,13 +114,16 @@ impl PaginationState {
     }
 }
 
+pub const DEFAULT_PAGE: usize = 1;
+pub const DEFAULT_PAGE_SIZE: usize = 6;
+
 impl Default for PaginationState {
     fn default() -> Self {
         PaginationState {
-            page: 1,
-            page_size: 1,
+            page: DEFAULT_PAGE,
+            page_size: DEFAULT_PAGE_SIZE,
             element_count: 0,
-            n_left_right: 1,
+            n_left_right: 2,
         }
     }
 }
