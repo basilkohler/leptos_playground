@@ -1,14 +1,12 @@
-use std::borrow::Borrow;
-use std::ops::Deref;
 use std::rc::Rc;
-use std::sync::Arc;
 
 use leptos::*;
 use leptos_router::*;
 use log::info;
 
-use crate::db::DB;
-use crate::pagination_state::{PaginationState, DEFAULT_PAGE, DEFAULT_PAGE_SIZE};
+use crate::pagination_state::{
+    PaginationItem::*, PaginationState, DEFAULT_PAGE, DEFAULT_PAGE_SIZE,
+};
 
 #[derive(Copy, Clone)]
 pub struct PaginationStateContext {
@@ -101,44 +99,39 @@ where
             />
         </select>
         <div>
-            <A href={move || format!("/items?page={}&page_size={}", state().first(), state().page_size())}>
-                "<<"
-            </A>" | "
-            <A href={move || format!("/items?page={}&page_size={}", state().prev(), state().page_size())}>
-                "<"
-            </A>" | "
-            {move ||
+            {move || {
+                let pl = pagination_link.clone();
                 state()
-                    .generate_pagination().iter()
-                    .map(|maybe_page| {
-                        match maybe_page {
-                            Some(page) => {
-                                let page = *page;
-                                let page_size = state().page_size();
-                                if state().is_cur(page) {
-                                    view!(cx, <span>{page}" | "</span>).into_any()
-                                } else {
-                                    view!(cx,
-                                    <span>
-                                        <A
-                                            href=move || {format!("/items?page={}&page_size={}", page, page_size)}>
-                                            {move || page}
-                                        </A>" | "
-                                    </span>).into_any()
-                                }
-                            },
-                            _ => view!(cx, <span>"... | "</span>).into_any(),
-                        }
+                    .generate_pagination().into_iter()
+                    .map(|pagination_item| {
+                        view! {cx, <span>{
+                            match pagination_item {
+                                    First(Some(page)) => view!(cx, <A href={pl(page, state().page_size())}>"<<"</A>).into_view(cx),
+                                    First(None) => view!(cx, <span>"<<"</span>).into_view(cx),
+                                    Prev(Some(page)) => view!(cx, <A href={pl(page, state().page_size())}>"<"</A>).into_view(cx),
+                                    Prev(None) => view!(cx, <span>"<"</span>).into_view(cx),
+                                    DotsLeft | DotsRight => view!(cx, <span>"..."</span>).into_view(cx),
+                                    Pages(pages) => view!(cx,
+                                                        <span>
+                                                        {pages.into_iter()
+                                                            .map(|(page, is_cur)| view! {cx, <span> {
+                                                            if is_cur {
+                                                                 view!(cx, <span>{page}</span>).into_view(cx)
+                                                            } else {
+                                                                 view!(cx, <A href={pl(page, state().page_size())}>{page}</A>).into_view(cx)
+                                                            }
+                                                            }" | "</span>}
+                                                        ).collect::<Vec<_>>()
+                                                        }</span>).into_view(cx),
+                                    Next(Some(page)) => view!(cx, <A href={pl(page, state().page_size())}>">"</A>).into_view(cx),
+                                    Next(None) => view!(cx, <span>">"</span>).into_view(cx),
+                                    Last(Some(page)) => view!(cx, <A href={pl(page, state().page_size())}>">>"</A>).into_view(cx),
+                                    Last(None) => view!(cx, <span>">>"</span>).into_view(cx),
+                                    _ => view!(cx, <span>"_"</span>).into_view(cx),
+                            }
+                        }</span>" | " }
                     })
-                    .collect::<Vec<_>>()
-            }
-
-            <A href={move || format!("/items?page={}&page_size={}", state().next(), state().page_size())}>
-                ">"
-            </A>" | "
-            <A href={move || format!("/items?page={}&page_size={}", state().last(), state().page_size())}>
-                ">>"
-            </A>
+                    .collect::<Vec<_>>()}}
         </div>
         {move ||
             paginated_items.with(|items| {

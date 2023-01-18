@@ -65,7 +65,7 @@ impl PaginationState {
         self.page == page
     }
     pub fn has_prev(&self) -> bool {
-        self.page <= 1
+        self.page > 1
     }
     // pub fn go_prev(&mut self) {
     //     self.page -= 1;
@@ -109,23 +109,34 @@ impl PaginationState {
     pub fn element_count(&self) -> usize {
         self.element_count
     }
-    pub fn generate_pagination(&self) -> Vec<Option<usize>> {
+    pub fn generate_pagination(&self) -> Vec<PaginationItem> {
+        use PaginationItem::*;
+
+        fn value_bool_to_option<T>(v: T, b: bool) -> Option<T> {
+            if b {
+                Some(v)
+            } else {
+                None
+            }
+        }
+
         let mut pagination = Vec::new();
-        if self.has_first() {
-            pagination.push(Some(self.first()));
-        }
+        pagination.push(First(value_bool_to_option(self.first(), self.has_first())));
+        pagination.push(Prev(value_bool_to_option(self.prev(), self.has_prev())));
         if self.has_dots_left() {
-            pagination.push(None);
+            pagination.push(DotsLeft);
         }
-        for p in self.from_to() {
-            pagination.push(Some(p));
-        }
+        let pages = self
+            .from_to()
+            .into_iter()
+            .map(|p| (p, self.is_cur(p)))
+            .collect();
+        pagination.push(Pages(pages));
         if self.has_dots_right() {
-            pagination.push(None);
+            pagination.push(DotsRight);
         }
-        if self.has_last() {
-            pagination.push(Some(self.last()));
-        }
+        pagination.push(Next(value_bool_to_option(self.next(), self.has_next())));
+        pagination.push(Last(value_bool_to_option(self.last(), self.has_last())));
         pagination
     }
 }
@@ -142,4 +153,14 @@ impl Default for PaginationState {
             n_left_right: 2,
         }
     }
+}
+
+pub enum PaginationItem {
+    First(Option<usize>),
+    Prev(Option<usize>),
+    DotsLeft,
+    Pages(Vec<(usize, bool)>),
+    DotsRight,
+    Next(Option<usize>),
+    Last(Option<usize>),
 }
