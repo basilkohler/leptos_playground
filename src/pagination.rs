@@ -104,34 +104,29 @@ where
                 state()
                     .generate_pagination().into_iter()
                     .map(|pagination_item| {
-                        view! {cx, <span>{
-                            match pagination_item {
-                                    First(Some(page)) => view!(cx, <A href={pl(page, state().page_size())}>"<<"</A>).into_view(cx),
-                                    First(None) => view!(cx, <span>"<<"</span>).into_view(cx),
-                                    Prev(Some(page)) => view!(cx, <A href={pl(page, state().page_size())}>"<"</A>).into_view(cx),
-                                    Prev(None) => view!(cx, <span>"<"</span>).into_view(cx),
-                                    DotsLeft | DotsRight => view!(cx, <span>"..."</span>).into_view(cx),
-                                    Pages(pages) => view!(cx,
-                                                        <span>
-                                                        {pages.into_iter()
-                                                            .map(|(page, is_cur)| view! {cx, <span> {
-                                                            if is_cur {
-                                                                 view!(cx, <span>{page}</span>).into_view(cx)
-                                                            } else {
-                                                                 view!(cx, <A href={pl(page, state().page_size())}>{page}</A>).into_view(cx)
-                                                            }
-                                                            }" | "</span>}
-                                                        ).collect::<Vec<_>>()
-                                                        }</span>).into_view(cx),
-                                    Next(Some(page)) => view!(cx, <A href={pl(page, state().page_size())}>">"</A>).into_view(cx),
-                                    Next(None) => view!(cx, <span>">"</span>).into_view(cx),
-                                    Last(Some(page)) => view!(cx, <A href={pl(page, state().page_size())}>">>"</A>).into_view(cx),
-                                    Last(None) => view!(cx, <span>">>"</span>).into_view(cx),
-                                    _ => view!(cx, <span>"_"</span>).into_view(cx),
-                            }
-                        }</span>" | " }
-                    })
-                    .collect::<Vec<_>>()}}
+                        let v: Vec<View> = match pagination_item {
+                                First(Some(page)) => vec![view!(cx, <A href={pl(page, state().page_size())}>"<<"</A>).into_view(cx)],
+                                First(None) => vec![view!(cx, <span>"<<"</span>).into_view(cx)],
+                                Prev(Some(page)) => vec![view!(cx, <A href={pl(page, state().page_size())}>"<"</A>).into_view(cx)],
+                                Prev(None) => vec![view!(cx, <span>"<"</span>).into_view(cx)],
+                                DotsLeft | DotsRight => vec![view!(cx, <span>"..."</span>).into_view(cx)],
+                                Pages(pages) => pages.into_iter()
+                                                        .map(|(page, is_cur)|
+                                                        if is_cur {
+                                                             view!(cx, <span>{page}</span>).into_view(cx)
+                                                        } else {
+                                                             view!(cx, <A href={pl(page, state().page_size())}>{page}</A>).into_view(cx)
+                                                        }).collect::<Vec<_>>(),
+                                Next(Some(page)) => vec![view!(cx, <A href={pl(page, state().page_size())}>">"</A>).into_view(cx)],
+                                Next(None) => vec![view!(cx, <span>">"</span>).into_view(cx)],
+                                Last(Some(page)) => vec![view!(cx, <A href={pl(page, state().page_size())}>">>"</A>).into_view(cx)],
+                                Last(None) => vec![view!(cx, <span>">>"</span>).into_view(cx)],
+                                _ => vec![view!(cx, <span>"_"</span>).into_view(cx)],
+                        };
+                     view! {cx, <span>{
+                        v.into_iter().map(|v| view!(cx, <span>{v}" | "</span>)).collect::<Vec<_>>()
+                     }</span>}
+                    }).collect::<Vec<_>>()}}
         </div>
         {move ||
             paginated_items.with(|items| {
