@@ -1,7 +1,7 @@
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct PaginationState {
-    page: usize,
-    page_size: usize,
+    pub page: usize,
+    pub page_size: usize,
     element_count: usize,
     n_left_right: usize,
 }
@@ -11,6 +11,14 @@ impl PaginationState {
         PaginationState {
             page,
             page_size,
+            ..PaginationState::default()
+        }
+    }
+    pub fn new_with_count(page: usize, page_size: usize, element_count: usize) -> Self {
+        PaginationState {
+            page,
+            page_size,
+            element_count,
             ..PaginationState::default()
         }
     }
@@ -59,18 +67,18 @@ impl PaginationState {
     pub fn has_prev(&self) -> bool {
         self.page <= 1
     }
-    pub fn go_prev(&mut self) {
-        self.page -= 1;
-    }
+    // pub fn go_prev(&mut self) {
+    //     self.page -= 1;
+    // }
     pub fn next(&self) -> usize {
-        self.page + 1
+        (self.page + 1).min(self.element_count)
     }
     pub fn has_next(&self) -> bool {
         self.page < self.pages()
     }
-    pub fn go_next(&mut self) {
-        self.page += 1;
-    }
+    // pub fn go_next(&mut self) {
+    //     self.page += 1;
+    // }
     pub fn pages(&self) -> usize {
         self.element_count
             .checked_div(self.page_size)
@@ -82,6 +90,14 @@ impl PaginationState {
                 }
             })
             .unwrap_or_default()
+    }
+    pub fn set_page(&mut self, page: usize) {
+        self.page = page;
+    }
+    pub fn update(&mut self, page: usize, page_size: usize, n: usize) {
+        self.page = page;
+        self.page_size = page_size;
+        self.element_count = n;
     }
     pub fn set_page_size(&mut self, page_size: usize) {
         self.page_size = page_size;

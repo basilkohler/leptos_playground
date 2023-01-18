@@ -1,5 +1,7 @@
 use log::info;
 
+use crate::pagination::PaginatedResult;
+
 #[derive(Debug)]
 pub struct DB {
     pub items: Vec<MockItem>,
@@ -7,7 +9,6 @@ pub struct DB {
 
 impl DB {
     pub fn new(size: usize) -> Self {
-        info!("construct db");
         let items = (0..size).map(|i| MockItem {
             id: format!("id{i}"),
             title: format!("title{i}"),
@@ -17,7 +18,6 @@ impl DB {
     }
 
     pub fn get_paginated_items(&self, n_skip: usize, n_take: usize) -> PaginatedResult<MockItem> {
-        info!("get paginated items");
         PaginatedResult {
             result: self
                 .items
@@ -36,10 +36,4 @@ pub struct MockItem {
     pub id: String,
     pub title: String,
     pub description: String,
-}
-
-#[derive(Debug, Clone)]
-pub struct PaginatedResult<T> {
-    pub result: Vec<T>,
-    pub total: usize,
 }
