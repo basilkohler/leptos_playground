@@ -1,3 +1,5 @@
+use crate::pagination::{DEFAULT_PAGE, DEFAULT_PAGE_SIZE};
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct PaginationState {
     pub page: usize,
@@ -140,9 +142,6 @@ impl PaginationState {
         pagination
     }
 }
-
-pub const DEFAULT_PAGE: usize = 1;
-pub const DEFAULT_PAGE_SIZE: usize = 6;
 
 impl Default for PaginationState {
     fn default() -> Self {

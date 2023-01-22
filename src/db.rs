@@ -1,6 +1,4 @@
-use log::info;
-
-use crate::pagination::PaginatedResult;
+use crate::pagination::pagination_components::PaginatedResult;
 
 #[derive(Debug)]
 pub struct DB {

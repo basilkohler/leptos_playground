@@ -4,9 +4,8 @@ use leptos::*;
 use leptos_router::*;
 use log::info;
 
-use crate::pagination_state::{
-    PaginationItem::*, PaginationState, DEFAULT_PAGE, DEFAULT_PAGE_SIZE,
-};
+use crate::pagination::pagination_state::{PaginationItem::*, PaginationState};
+use crate::pagination::{DEFAULT_PAGE, DEFAULT_PAGE_SIZE};
 
 #[derive(Copy, Clone)]
 pub struct PaginationStateContext {
@@ -44,7 +43,8 @@ where
 
     let query_state = move || {
         query.with(|query_map| {
-            let query_map = query();
+            // let query_map = query();
+            info!("query map: {query_map:?}");
             let page = query_map
                 .get(&page_query_param)
                 .cloned()
@@ -121,7 +121,6 @@ where
                                 Next(None) => vec![view!(cx, <span>">"</span>).into_view(cx)],
                                 Last(Some(page)) => vec![view!(cx, <A href={pl(page, state().page_size())}>">>"</A>).into_view(cx)],
                                 Last(None) => vec![view!(cx, <span>">>"</span>).into_view(cx)],
-                                _ => vec![view!(cx, <span>"_"</span>).into_view(cx)],
                         };
                      view! {cx, <span>{
                         v.into_iter().map(|v| view!(cx, <span>{v}" | "</span>)).collect::<Vec<_>>()
