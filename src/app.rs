@@ -1,4 +1,5 @@
 use leptos::*;
+use leptos_meta::*;
 use leptos_router::*;
 
 use crate::db::{MockItem, DB};
@@ -6,15 +7,14 @@ use crate::pagination::pagination_components::{
     Pagination, PaginationProps, PaginationStateContext,
 };
 
-// #[server(GetItems, "/api")]
-// pub async fn get_todos(cx: Scope) -> Result<Vec<MockItem()>, ServerFnError> {
-//
-// }
-
 #[component]
 pub fn App(cx: Scope) -> impl IntoView {
+    provide_meta_context(cx);
     view! {cx,
-        <div>
+        <>
+            <Link rel="shortcut icon" type_="image/ico" href="/favicon.ico"/>
+            <Stylesheet id="leptos" href="/pkg/leptos_playground.css"/>
+            <Meta name="description" content="Leptos playground project."/>
             <Router>
                 <nav>
                     <A exact=true href="/">"Home"</A>
@@ -28,7 +28,7 @@ pub fn App(cx: Scope) -> impl IntoView {
                     </Routes>
                 </main>
             </Router>
-        </div>
+        </>
     }
 }
 
@@ -37,14 +37,12 @@ pub fn ItemsView(cx: Scope) -> impl IntoView {
     view! {cx,
         <div>
             <h1>"Paginated Items"</h1>
-                <Transition fallback = move || view! {cx, <div>"Loading..."</div>} >
-                    <Pagination
-                        pagination_link=Box::new(|page, page_size| format!("/items?page={}&page_size={}", page, page_size))
-                        page_query_param="page".to_string()
-                        page_size_query_param="page_size".to_string()>
-                        <Items/>
-                    </Pagination>
-                </Transition>
+                <Pagination
+                    pagination_link=Box::new(|page, page_size| format!("/items?page={}&page_size={}", page, page_size))
+                    page_query_param="page".to_string()
+                    page_size_query_param="page_size".to_string()>
+                    <Items/>
+                </Pagination>
             <Outlet/>
         </div>
     }
@@ -64,24 +62,31 @@ pub fn Items(cx: Scope) -> impl IntoView {
         move || pagination_state(),
         move |ps| async move {
             let db = DB::new(42);
+            log::info!("items: {ps:?}");
             let (items, total_count) = db.get_paginated_items(ps.page(), ps.page_size());
             set_pagination_state.update(|ps| ps.set_element_count(total_count));
             return items;
         },
     );
     view! { cx, <div>
-        <Transition fallback = move || view! {cx, <div>"Loading..."</div>} >
-        {move || {
-            paginated_items.with(|items| {
-                let items = items.clone();
-                view! { cx, <div>
-                {move ||
-                items.iter()
-                    .map(| item | view!{ cx, <MockItem item=item.clone()/> })
-                .collect::<Vec<_>>()}
-            </div>}})
-        }}
-                </Transition>
+        <Transition fallback=move || view! {cx, <div>"Loading..."</div>}>
+            {move || match paginated_items.read() {
+                None => None,
+                Some(items) => {
+                    let items = items.clone();
+                    Some(
+                        view! { cx, <div>
+                            <For
+                                each=move || items.clone()
+                                key=|item| item.id.clone()
+                                view=move |item| {
+                                    view!{ cx, <MockItem item=item/> }
+                                }/>
+                        </div>}.into_any()
+                    )
+                }
+            }}
+        </Transition>
     </div>}
 }
 

@@ -44,13 +44,6 @@ pub fn Pagination(
         })
     };
 
-    // create_effect(cx, move |_| {
-    //     let (page, page_size) = query_state();
-    //     log::info!("update {page} and {page_size}");
-    //     set_state.update(|ps| ps.set_page_and_size(page, page_size));
-    //     state()
-    // });
-
     let pagination_link = Rc::new(pagination_link);
     provide_context(
         cx,
@@ -66,7 +59,7 @@ pub fn Pagination(
             .parse()
             .unwrap_or_else(|_| 1_usize);
         let path = &pagination_link_update(page, page_size);
-        // navigate(path, NavigateOptions::default()).unwrap();
+        navigate(path, NavigateOptions::default()).unwrap();
     };
 
     view! {cx, <div>
@@ -95,8 +88,8 @@ pub fn Pagination(
                                 Prev(Some(page)) => view!(cx, <A href={pl(page, state().page_size())}>"<"</A>).into_view(cx),
                                 Prev(None) => view!(cx, <span>"<"</span>).into_view(cx),
                                 DotsLeft | DotsRight => view!(cx, <span>"..."</span>).into_view(cx),
-                                Page((page, true)) => view!(cx, <A href={pl(page, state().page_size())}>{page}</A>).into_view(cx),
-                                Page((page, false)) => view!(cx, <span>{page}</span>).into_view(cx),
+                                Page(page) => view!(cx, <A href={pl(page, state().page_size())}>{page}</A>).into_view(cx),
+                                PageInactive(page) => view!(cx, <span>{page}</span>).into_view(cx),
                                 Next(Some(page)) => view!(cx, <A href={pl(page, state().page_size())}>">"</A>).into_view(cx),
                                 Next(None) => view!(cx, <span>">"</span>).into_view(cx),
                                 Last(Some(page)) => view!(cx, <A href={pl(page, state().page_size())}>">>"</A>).into_view(cx),
