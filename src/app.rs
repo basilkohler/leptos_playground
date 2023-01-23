@@ -2,7 +2,7 @@ use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
 
-use crate::db::{MockItem, DB};
+use crate::db::{get_items, MockItem, DB};
 use crate::pagination::pagination_components::{
     Pagination, PaginationProps, PaginationStateContext,
 };
@@ -61,11 +61,21 @@ pub fn Items(cx: Scope) -> impl IntoView {
         cx,
         move || pagination_state(),
         move |ps| async move {
-            let db = DB::new(42);
-            log::info!("items: {ps:?}");
-            let (items, total_count) = db.get_paginated_items(ps.page(), ps.page_size());
-            set_pagination_state.update(|ps| ps.set_element_count(total_count));
-            return items;
+            // let db = DB::new(42);
+            // log::info!("items: {ps:?}");
+            // let (items, total_count) = db.get_paginated_items(ps.page(), ps.page_size());
+            // let (items, total_count) =
+            let res = get_items(cx, ps.page() as u32, ps.page_size() as u32).await;
+            match res {
+                Ok((items, total_count)) => {
+                    set_pagination_state.update(|ps| ps.set_element_count(total_count as usize));
+                    items
+                }
+                Err(msg) => {
+                    log::error!("Error reading items: {msg}");
+                    vec![]
+                }
+            }
         },
     );
     view! { cx, <div>
