@@ -85,7 +85,6 @@ pub fn Items(cx: Scope) -> impl IntoView {
         cx,
         move || pagination_state(),
         move |ps| async move {
-            log::info!("paginated_items");
             let db = DB::new(42);
             let (items, total_count) = db.get_paginated_items(ps.page(), ps.page_size());
             set_pagination_state.update(|ps| ps.set_element_count(total_count));

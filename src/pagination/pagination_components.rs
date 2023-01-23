@@ -2,7 +2,6 @@ use std::rc::Rc;
 
 use leptos::*;
 use leptos_router::*;
-use log::info;
 use serde::{Deserialize, Serialize};
 
 use crate::pagination::pagination_state::{PaginationItem::*, PaginationState};
@@ -93,7 +92,6 @@ pub fn Pagination(
                         state()
                             .generate_pagination().into_iter()
                             .map(|pagination_item| {
-                                log::info!("pi: {:?}", pagination_item);
                                 let v: Vec<View> = match pagination_item {
                                         First(Some(page)) => vec![view!(cx, <A href={pl(page, state().page_size())}>"<<"</A>).into_view(cx)],
                                         First(None) => vec![view!(cx, <span>"<<"</span>).into_view(cx)],

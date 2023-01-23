@@ -111,7 +111,6 @@ impl PaginationState {
     }
     pub fn generate_pagination(&self) -> Vec<PaginationItem> {
         use PaginationItem::*;
-        log::info!("gen pag: {:?}", self);
 
         fn value_bool_to_option<T>(v: T, b: bool) -> Option<T> {
             if b {
