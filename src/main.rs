@@ -23,7 +23,7 @@ if #[cfg(feature = "ssr")] {
         let routes = generate_route_list(|cx| view! {cx, <App/> }).await;
 
         let app = Router::new()
-                    // .route("/api/*fn_name")
+                    // .route("/api/*fn_name", post(leptos_axum::handle_server_fns))
                     .leptos_routes(leptos_options.clone(), routes, |cx| view! {cx, <App/> })
                     .fallback(file_handler)
                     .layer(Extension(Arc::new(leptos_options)));
@@ -38,8 +38,8 @@ if #[cfg(feature = "ssr")] {
     use leptos_playground::app::{App, AppProps};
     use leptos::*;
     pub fn main() {
-        _ = console_log::init_with_level(log::Level::Debug);
         console_error_panic_hook::set_once();
+        _ = console_log::init_with_level(log::Level::Debug);
         mount_to_body(|cx| view! { cx, <App/> })
     }
 }}

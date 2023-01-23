@@ -1,4 +1,5 @@
-use crate::pagination::pagination_components::PaginatedResult;
+// use crate::pagination::pagination_components::PaginatedResult;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
 pub struct DB {
@@ -15,21 +16,20 @@ impl DB {
         DB { items }
     }
 
-    pub fn get_paginated_items(&self, n_skip: usize, n_take: usize) -> PaginatedResult<MockItem> {
-        PaginatedResult {
-            result: self
-                .items
+    pub fn get_paginated_items(&self, n_skip: usize, n_take: usize) -> (Vec<MockItem>, usize) {
+        (
+            self.items
                 .iter()
                 .cloned()
                 .skip(n_skip)
                 .take(n_take)
                 .collect(),
-            total: self.items.len(),
-        }
+            self.items.len(),
+        )
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MockItem {
     pub id: String,
     pub title: String,

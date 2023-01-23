@@ -2,7 +2,14 @@ use leptos::*;
 use leptos_router::*;
 
 use crate::db::{MockItem, DB};
-use crate::pagination::pagination_components::{Pagination, PaginationProps};
+use crate::pagination::pagination_components::{
+    Pagination, PaginationProps, PaginationStateContext,
+};
+
+// #[server(GetItems, "/api")]
+// pub async fn get_todos(cx: Scope) -> Result<Vec<MockItem()>, ServerFnError> {
+//
+// }
 
 #[component]
 pub fn App(cx: Scope) -> impl IntoView {
@@ -30,13 +37,12 @@ pub fn ItemsView(cx: Scope) -> impl IntoView {
     view! {cx,
         <div>
             <h1>"Paginated Items"</h1>
-            // Customize rendering of Pagination component
             <Pagination
-                fetch_items=Box::new(|page, page_size| DB::new(42).get_paginated_items(page, page_size))
                 pagination_link=Box::new(|page, page_size| format!("/items?page={}&page_size={}", page, page_size))
                 page_query_param="page".to_string()
-                page_size_query_param="page_size".to_string()
-                items_view=Box::new(|cx, items| view!(cx, <Items items=items/>)) >
+                page_size_query_param="page_size".to_string()>
+                <Items/>
+                <h1>"foobar"</h1>
             </Pagination>
             <Outlet/>
         </div>
@@ -69,12 +75,34 @@ pub fn ItemView(cx: Scope) -> impl IntoView {
 }
 
 #[component]
-pub fn Items(cx: Scope, items: Vec<MockItem>) -> impl IntoView {
+pub fn Items(cx: Scope) -> impl IntoView {
+    let PaginationStateContext {
+        pagination_state,
+        set_pagination_state,
+    } = use_context(cx).unwrap();
+
+    let paginated_items = create_resource(
+        cx,
+        move || pagination_state(),
+        move |ps| async move {
+            log::info!("paginated_items");
+            let db = DB::new(42);
+            let (items, total_count) = db.get_paginated_items(ps.page(), ps.page_size());
+            set_pagination_state.update(|ps| ps.set_element_count(total_count));
+            return items;
+        },
+    );
     view! { cx,
+
         <div>{move || {
-            items.iter()
-                .map(| item | view!{ cx, <MockItem item=item.clone()/> })
-            .collect::<Vec<_>>()
+            paginated_items.with(|items| {
+                let items = items.clone();
+                view! { cx, <div>
+                {move ||
+                items.iter()
+                    .map(| item | view!{ cx, <MockItem item=item.clone()/> })
+                .collect::<Vec<_>>()}
+            </div>}})
         }}</div>
     }
 }

@@ -31,7 +31,7 @@ impl PaginationState {
         self.page_size
     }
     pub fn has_first(&self) -> bool {
-        self.page > self.n_left_right + 1
+        self.page > 1
     }
     pub fn first(&self) -> usize {
         1
@@ -58,7 +58,7 @@ impl PaginationState {
         (self.from()..=self.to()).collect()
     }
     pub fn has_last(&self) -> bool {
-        self.page <= self.pages().saturating_sub(self.n_left_right + 1)
+        self.page < self.pages()
     }
     pub fn last(&self) -> usize {
         self.pages()
@@ -69,18 +69,12 @@ impl PaginationState {
     pub fn has_prev(&self) -> bool {
         self.page > 1
     }
-    // pub fn go_prev(&mut self) {
-    //     self.page -= 1;
-    // }
     pub fn next(&self) -> usize {
         (self.page + 1).min(self.element_count)
     }
     pub fn has_next(&self) -> bool {
         self.page < self.pages()
     }
-    // pub fn go_next(&mut self) {
-    //     self.page += 1;
-    // }
     pub fn pages(&self) -> usize {
         self.element_count
             .checked_div(self.page_size)
@@ -105,6 +99,10 @@ impl PaginationState {
         self.page_size = page_size;
         self.page = 1;
     }
+    pub fn set_page_and_size(&mut self, page: usize, page_size: usize) {
+        self.page = page;
+        self.page_size = page_size;
+    }
     pub fn set_element_count(&mut self, element_count: usize) {
         self.element_count = element_count;
     }
@@ -113,6 +111,7 @@ impl PaginationState {
     }
     pub fn generate_pagination(&self) -> Vec<PaginationItem> {
         use PaginationItem::*;
+        log::info!("gen pag: {:?}", self);
 
         fn value_bool_to_option<T>(v: T, b: bool) -> Option<T> {
             if b {
@@ -154,6 +153,7 @@ impl Default for PaginationState {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub enum PaginationItem {
     First(Option<usize>),
     Prev(Option<usize>),
