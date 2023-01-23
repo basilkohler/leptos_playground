@@ -13,14 +13,6 @@ pub struct PaginationStateContext {
     pub set_pagination_state: WriteSignal<PaginationState>,
 }
 
-// #[derive(Debug, Clone, Serialize, Deserialize)]
-// #[serde(bound(deserialize = "'de: 'a"))]
-// #[derive(Debug, Clone)]
-// pub struct PaginatedResult<Tstatic>> {
-//     pub result: Vec<T>,
-//     pub total: usize,
-// }
-
 #[component]
 pub fn Pagination(
     cx: Scope,
@@ -52,11 +44,12 @@ pub fn Pagination(
         })
     };
 
-    create_effect(cx, move |_| {
-        let (page, page_size) = query_state();
-        set_state.update(|ps| ps.set_page_and_size(page, page_size));
-        state()
-    });
+    // create_effect(cx, move |_| {
+    //     let (page, page_size) = query_state();
+    //     log::info!("update {page} and {page_size}");
+    //     set_state.update(|ps| ps.set_page_and_size(page, page_size));
+    //     state()
+    // });
 
     let pagination_link = Rc::new(pagination_link);
     provide_context(
@@ -73,51 +66,47 @@ pub fn Pagination(
             .parse()
             .unwrap_or_else(|_| 1_usize);
         let path = &pagination_link_update(page, page_size);
-        navigate(path, NavigateOptions::default()).unwrap();
+        // navigate(path, NavigateOptions::default()).unwrap();
     };
 
     view! {cx, <div>
-                <label>"page size: "{move || state().page_size()}</label>
-                <select on:change=move |e| update_page_size(e, state().page())
-                        prop:value={move || state().page_size()}>
-                    <For
-                        each=move || page_sizes.clone()
-                        key=|i| i.clone()
-                        view=move |i: usize| view! { cx, <option prop:value={i.clone()} selected={state().page_size() == i.clone()}>{i.clone()}</option> }
-                    />
-                </select>
-                <div>
-                    {move || {
-                        let pl = pagination_link.clone();
-                        state()
-                            .generate_pagination().into_iter()
-                            .map(|pagination_item| {
-                                let v: Vec<View> = match pagination_item {
-                                        First(Some(page)) => vec![view!(cx, <A href={pl(page, state().page_size())}>"<<"</A>).into_view(cx)],
-                                        First(None) => vec![view!(cx, <span>"<<"</span>).into_view(cx)],
-                                        Prev(Some(page)) => vec![view!(cx, <A href={pl(page, state().page_size())}>"<"</A>).into_view(cx)],
-                                        Prev(None) => vec![view!(cx, <span>"<"</span>).into_view(cx)],
-                                        DotsLeft | DotsRight => vec![view!(cx, <span>"..."</span>).into_view(cx)],
-                                        Pages(pages) => pages.into_iter()
-                                                                .map(|(page, is_cur)|
-                                                                if is_cur {
-                                                                     view!(cx, <span>{page}</span>).into_view(cx)
-                                                                } else {
-                                                                     view!(cx, <A href={pl(page, state().page_size())}>{page}</A>).into_view(cx)
-                                                                }).collect::<Vec<_>>(),
-                                        Next(Some(page)) => vec![view!(cx, <A href={pl(page, state().page_size())}>">"</A>).into_view(cx)],
-                                        Next(None) => vec![view!(cx, <span>">"</span>).into_view(cx)],
-                                        Last(Some(page)) => vec![view!(cx, <A href={pl(page, state().page_size())}>">>"</A>).into_view(cx)],
-                                        Last(None) => vec![view!(cx, <span>">>"</span>).into_view(cx)],
-                                };
-                             view! {cx, <span>{
-                                v.into_iter().map(|v| view!(cx, <span>{v}" | "</span>)).collect::<Vec<_>>()
-                             }</span>}
-                            }).collect::<Vec<_>>()}}
-                </div>
-
-                {children(cx)}
-
+        {move || {
+                let (page, page_size) = query_state();
+                set_state.update(|ps| ps.set_page_and_size(page, page_size));
+        }}
+        <label>"page size: "{move || state().page_size()}</label>
+        <select on:change=move |e| update_page_size(e, state().page())
+                prop:value={move || state().page_size()}>
+            <For
+                each=move || page_sizes.clone()
+                key=|i| i.clone()
+                view=move |i: usize| view! { cx, <option prop:value={i.clone()} selected={state().page_size() == i.clone()}>{i.clone()}</option> }
+            />
+        </select>
+        <div>
+            {move || {
+                let pl = pagination_link.clone();
+                state()
+                    .generate_pagination().into_iter()
+                    .map(|pagination_item| {
+                        let v = match pagination_item {
+                                First(Some(page)) => view!(cx, <A href={pl(page, state().page_size())}>"<<"</A>).into_view(cx),
+                                First(None) => view!(cx, <span>"<<"</span>).into_view(cx),
+                                Prev(Some(page)) => view!(cx, <A href={pl(page, state().page_size())}>"<"</A>).into_view(cx),
+                                Prev(None) => view!(cx, <span>"<"</span>).into_view(cx),
+                                DotsLeft | DotsRight => view!(cx, <span>"..."</span>).into_view(cx),
+                                Page((page, true)) => view!(cx, <A href={pl(page, state().page_size())}>{page}</A>).into_view(cx),
+                                Page((page, false)) => view!(cx, <span>{page}</span>).into_view(cx),
+                                Next(Some(page)) => view!(cx, <A href={pl(page, state().page_size())}>">"</A>).into_view(cx),
+                                Next(None) => view!(cx, <span>">"</span>).into_view(cx),
+                                Last(Some(page)) => view!(cx, <A href={pl(page, state().page_size())}>">>"</A>).into_view(cx),
+                                Last(None) => view!(cx, <span>">>"</span>).into_view(cx),
+                        };
+                        view!(cx, <span>{v}" | "</span>)
+                    }).collect::<Vec<_>>()}}
         </div>
-    }
+
+        {children(cx)}
+
+    </div>}
 }

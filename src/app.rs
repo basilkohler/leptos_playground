@@ -37,16 +37,52 @@ pub fn ItemsView(cx: Scope) -> impl IntoView {
     view! {cx,
         <div>
             <h1>"Paginated Items"</h1>
-            <Pagination
-                pagination_link=Box::new(|page, page_size| format!("/items?page={}&page_size={}", page, page_size))
-                page_query_param="page".to_string()
-                page_size_query_param="page_size".to_string()>
-                <Items/>
-                <h1>"foobar"</h1>
-            </Pagination>
+                <Transition fallback = move || view! {cx, <div>"Loading..."</div>} >
+                    <Pagination
+                        pagination_link=Box::new(|page, page_size| format!("/items?page={}&page_size={}", page, page_size))
+                        page_query_param="page".to_string()
+                        page_size_query_param="page_size".to_string()>
+                        <Items/>
+                    </Pagination>
+                </Transition>
             <Outlet/>
         </div>
     }
+}
+
+#[component]
+pub fn Items(cx: Scope) -> impl IntoView {
+    let PaginationStateContext {
+        pagination_state,
+        set_pagination_state,
+    } = use_context(cx).unwrap();
+
+    log::info!("init Items");
+
+    let paginated_items = create_resource(
+        cx,
+        move || pagination_state(),
+        move |ps| async move {
+            let db = DB::new(42);
+            let (items, total_count) = db.get_paginated_items(ps.page(), ps.page_size());
+            set_pagination_state.update(|ps| ps.set_element_count(total_count));
+            return items;
+        },
+    );
+    view! { cx, <div>
+        <Transition fallback = move || view! {cx, <div>"Loading..."</div>} >
+        {move || {
+            paginated_items.with(|items| {
+                let items = items.clone();
+                view! { cx, <div>
+                {move ||
+                items.iter()
+                    .map(| item | view!{ cx, <MockItem item=item.clone()/> })
+                .collect::<Vec<_>>()}
+            </div>}})
+        }}
+                </Transition>
+    </div>}
 }
 
 #[component]
@@ -71,38 +107,6 @@ pub fn ItemView(cx: Scope) -> impl IntoView {
                 (view! {cx, <div>{format!("Item '{}' not found", id)}</div>}).into_view(cx)
             }
         }</div>
-    }
-}
-
-#[component]
-pub fn Items(cx: Scope) -> impl IntoView {
-    let PaginationStateContext {
-        pagination_state,
-        set_pagination_state,
-    } = use_context(cx).unwrap();
-
-    let paginated_items = create_resource(
-        cx,
-        move || pagination_state(),
-        move |ps| async move {
-            let db = DB::new(42);
-            let (items, total_count) = db.get_paginated_items(ps.page(), ps.page_size());
-            set_pagination_state.update(|ps| ps.set_element_count(total_count));
-            return items;
-        },
-    );
-    view! { cx,
-
-        <div>{move || {
-            paginated_items.with(|items| {
-                let items = items.clone();
-                view! { cx, <div>
-                {move ||
-                items.iter()
-                    .map(| item | view!{ cx, <MockItem item=item.clone()/> })
-                .collect::<Vec<_>>()}
-            </div>}})
-        }}</div>
     }
 }
 

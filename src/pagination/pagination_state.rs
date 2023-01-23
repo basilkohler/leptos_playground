@@ -30,7 +30,11 @@ impl PaginationState {
     pub fn page_size(&self) -> usize {
         self.page_size
     }
+
     pub fn has_first(&self) -> bool {
+        self.page > self.n_left_right + 1
+    }
+    pub fn has_go_first(&self) -> bool {
         self.page > 1
     }
     pub fn first(&self) -> usize {
@@ -58,6 +62,9 @@ impl PaginationState {
         (self.from()..=self.to()).collect()
     }
     pub fn has_last(&self) -> bool {
+        self.page <= self.pages().saturating_sub(self.n_left_right + 1)
+    }
+    pub fn has_go_last(&self) -> bool {
         self.page < self.pages()
     }
     pub fn last(&self) -> usize {
@@ -66,13 +73,13 @@ impl PaginationState {
     pub fn is_cur(&self, page: usize) -> bool {
         self.page == page
     }
-    pub fn has_prev(&self) -> bool {
+    pub fn has_go_prev(&self) -> bool {
         self.page > 1
     }
     pub fn next(&self) -> usize {
         (self.page + 1).min(self.element_count)
     }
-    pub fn has_next(&self) -> bool {
+    pub fn has_go_next(&self) -> bool {
         self.page < self.pages()
     }
     pub fn pages(&self) -> usize {
@@ -121,22 +128,31 @@ impl PaginationState {
         }
 
         let mut pagination = Vec::new();
-        pagination.push(First(value_bool_to_option(self.first(), self.has_first())));
-        pagination.push(Prev(value_bool_to_option(self.prev(), self.has_prev())));
+        pagination.push(First(value_bool_to_option(
+            self.first(),
+            self.has_go_first(),
+        )));
+        pagination.push(Prev(value_bool_to_option(self.prev(), self.has_go_prev())));
+        if self.has_first() {
+            pagination.push(Page((self.first(), true)));
+        }
         if self.has_dots_left() {
             pagination.push(DotsLeft);
         }
-        let pages = self
+        let mut pages: Vec<PaginationItem> = self
             .from_to()
             .into_iter()
-            .map(|p| (p, self.is_cur(p)))
+            .map(|p| Page((p, !self.is_cur(p))))
             .collect();
-        pagination.push(Pages(pages));
+        pagination.append(&mut pages);
         if self.has_dots_right() {
             pagination.push(DotsRight);
         }
-        pagination.push(Next(value_bool_to_option(self.next(), self.has_next())));
-        pagination.push(Last(value_bool_to_option(self.last(), self.has_last())));
+        if self.has_last() {
+            pagination.push(Page((self.last(), true)));
+        }
+        pagination.push(Next(value_bool_to_option(self.next(), self.has_go_next())));
+        pagination.push(Last(value_bool_to_option(self.last(), self.has_go_last())));
         pagination
     }
 }
@@ -157,7 +173,7 @@ pub enum PaginationItem {
     First(Option<usize>),
     Prev(Option<usize>),
     DotsLeft,
-    Pages(Vec<(usize, bool)>),
+    Page((usize, bool)),
     DotsRight,
     Next(Option<usize>),
     Last(Option<usize>),
