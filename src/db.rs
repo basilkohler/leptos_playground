@@ -18,20 +18,13 @@ cfg_if! {
             _ = GetItems::register();
         }
 
-        #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
-        pub struct MockItem {
-            pub id: u32,
-            pub title: String,
-            pub description: String,
-        }
-    } else {
-        #[derive(Debug, Clone, Serialize, Deserialize)]
-        pub struct MockItem {
-            pub id: u32,
-            pub title: String,
-            pub description: String,
-        }
     }
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MockItem {
+    pub id: i64,
+    pub title: String,
+    pub description: String,
 }
 
 #[server(GetItems, "/api")]
@@ -46,25 +39,22 @@ pub async fn get_items(
         log::info!("Uri = {:?}", req_parts.uri);
     }
 
-    use futures::TryStreamExt;
-
     let mut conn = db().await?;
 
-    let mut items = Vec::new();
-    let mut rows = sqlx::query_as::<_, MockItem>("SELECT * FROM items LIMIT $1 OFFSET $2")
-        .bind(page_size)
-        .bind((page.saturating_sub(1) * page_size))
-        .fetch(&mut conn);
-    while let Some(row) = rows
-        .try_next()
-        .await
-        .map_err(|e| ServerFnError::ServerError(e.to_string()))?
-    {
-        items.push(row);
-    }
+    let offset = page.saturating_sub(1) * page_size.clone();
+    let limit = page_size;
+    let items: Vec<MockItem> = sqlx::query_as!(
+        MockItem,
+        "SELECT * FROM items LIMIT $1 OFFSET $2",
+        limit,
+        offset
+    )
+    .fetch_all(&mut conn)
+    .await
+    .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
 
     let mut conn = db().await?;
-    let total_count = sqlx::query_as::<_, (u32,)>("SELECT COUNT(*) FROM items")
+    let total_count = sqlx::query!("SELECT COUNT(ALL) FROM items")
         .fetch_one(&mut conn)
         .await
         .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
@@ -80,7 +70,7 @@ pub struct DB {
 impl DB {
     pub fn new(size: usize) -> Self {
         let items = (0..size).map(|i| MockItem {
-            id: i as u32,
+            id: i as i64,
             title: format!("title{i}"),
             description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Mauris a diam maecenas sed enim ut sem viverra aliquet.".to_string(),
         }).collect();

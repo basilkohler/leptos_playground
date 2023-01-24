@@ -98,6 +98,7 @@ pub fn Pagination(
                         view!(cx, <span>{v}" | "</span>)
                     }).collect::<Vec<_>>()}}
         </div>
+        <p>"total: "</p>
 
         {children(cx)}
 

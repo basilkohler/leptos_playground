@@ -61,10 +61,6 @@ pub fn Items(cx: Scope) -> impl IntoView {
         cx,
         move || pagination_state(),
         move |ps| async move {
-            // let db = DB::new(42);
-            // log::info!("items: {ps:?}");
-            // let (items, total_count) = db.get_paginated_items(ps.page(), ps.page_size());
-            // let (items, total_count) =
             let res = get_items(cx, ps.page() as u32, ps.page_size() as u32).await;
             match res {
                 Ok((items, total_count)) => {

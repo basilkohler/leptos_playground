@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS items
 (
     id          INTEGER NOT NULL PRIMARY KEY,
-    title       VARCHAR,
-    description VARCHAR
+    title       VARCHAR NOT NULL,
+    description VARCHAR NOT NULL
 );
 
 INSERT INTO items (id, title, description)
