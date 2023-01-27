@@ -2,8 +2,8 @@ use cfg_if::cfg_if;
 use leptos::*;
 
 pub mod app;
-pub mod db;
 pub mod file;
+pub mod items;
 pub mod pagination;
 
 // Needs to be in lib.rs AFAIK because wasm-bindgen needs us to be compiling a lib. I may be wrong.

@@ -2,7 +2,6 @@ use std::rc::Rc;
 
 use leptos::*;
 use leptos_router::*;
-use serde::{Deserialize, Serialize};
 
 use crate::pagination::pagination_state::{PaginationItem::*, PaginationState};
 use crate::pagination::{DEFAULT_PAGE, DEFAULT_PAGE_SIZE};
